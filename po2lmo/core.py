@@ -1,21 +1,14 @@
-#!/usr/bin/env python3
 """
-po2lmo.py - PO to LMO conversion tool (Python implementation)
+Core functionality for po2lmo package
 
-Python implementation of the original C po2lmo tool for converting
-GNU gettext PO files to Lua Machine Objects (LMO) binary format.
-
-Original C version:
-Copyright (C) 2009-2012 Jo-Philipp Wich <xm@subsignal.org>
-
-Python implementation maintains the same binary format compatibility.
+This module contains the main classes and functions for converting PO files
+to LMO binary format.
 """
 
 import sys
 import struct
 import os
 import re
-import argparse
 import logging
 from typing import List, Tuple, Optional
 
@@ -351,50 +344,3 @@ def write_lmo_file(entries: List[Tuple[str, str]], output_filename: str) -> None
             f.write(struct.pack(">I", offset))
             f.flush()
             os.fsync(f.fileno())
-
-
-def main():
-    """Main function"""
-    parser = argparse.ArgumentParser(
-        description="Convert PO files to LMO binary format",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Example: %(prog)s input.po output.lmo",
-    )
-    parser.add_argument("input_file", help="Input PO file")
-    parser.add_argument("output_file", help="Output LMO file")
-    parser.add_argument("--debug", action="store_true", help="Enable debug output")
-
-    args = parser.parse_args()
-
-    # Setup logging
-    if args.debug:
-        logging.basicConfig(
-            level=logging.DEBUG, format="[DEBUG] %(message)s", stream=sys.stderr
-        )
-    else:
-        logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-    try:
-        # Parse PO file
-        entries = parse_po_file(args.input_file)
-        logging.debug(f"Parsed {len(entries)} translation entries")
-
-        # Write LMO file
-        write_lmo_file(entries, args.output_file)
-        logging.debug(f"Generated LMO file: {args.output_file}")
-
-    except FileNotFoundError:
-        print(f"Error: Cannot open input file '{args.input_file}'", file=sys.stderr)
-        sys.exit(1)
-    except PermissionError:
-        print(
-            f"Error: Cannot write to output file '{args.output_file}'", file=sys.stderr
-        )
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
